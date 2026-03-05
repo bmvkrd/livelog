@@ -143,7 +143,7 @@ This makes `livelog` safe to use in scripts, Docker containers, and CI pipelines
 This module follows [semantic versioning](https://semver.org). The current version constant is available at runtime:
 
 ```go
-fmt.Println(livelog.Version) // "0.1.0"
+fmt.Println(livelog.Version) // "1.0.1"
 ```
 
 ## License

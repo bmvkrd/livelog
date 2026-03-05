@@ -185,6 +185,34 @@ func TestIsTTY(t *testing.T) {
 	w2.Close()
 }
 
+func TestWithSeparator_TTY(t *testing.T) {
+	r, w, _ := os.Pipe()
+	d := New(w, WithForceTTY(true), WithSeparator(true))
+
+	d.SetLive([]string{"live"})
+	d.Flush()
+	output := readAll(r, w)
+
+	// Separator adds an extra line, so erasing should move up 2 lines (1 blank + 1 live).
+	if !strings.Contains(output, "\033[2A") {
+		t.Errorf("separator should cause liveCount=2, got %q", output)
+	}
+}
+
+func TestWithSeparator_NoLiveLines_TTY(t *testing.T) {
+	r, w, _ := os.Pipe()
+	d := New(w, WithForceTTY(true), WithSeparator(true))
+
+	// No live lines: separator must not be emitted, so no cursor-up sequence.
+	d.Log("hello")
+	d.Flush()
+	output := readAll(r, w)
+
+	if strings.Contains(output, "\033[A") {
+		t.Errorf("separator should not be emitted when live zone is empty, got %q", output)
+	}
+}
+
 func TestTerminalWidth_NonTTY(t *testing.T) {
 	d, _, w := capturedDisplay(false)
 	defer w.Close()

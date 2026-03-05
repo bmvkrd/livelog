@@ -18,6 +18,7 @@ type Display struct {
 	fd        int
 	isTTY     bool
 	forceTTY  *bool // non-nil means overridden
+	separator bool  // blank line between log and live zones
 	liveLines []string
 	liveCount int // number of logical lines last rendered
 	buf       bytes.Buffer
@@ -25,6 +26,14 @@ type Display struct {
 
 // Option configures a Display.
 type Option func(*Display)
+
+// WithSeparator controls whether a blank line is inserted between the
+// scrolling log zone and the live zone. Defaults to false.
+func WithSeparator(sep bool) Option {
+	return func(d *Display) {
+		d.separator = sep
+	}
+}
 
 // WithForceTTY overrides automatic TTY detection.
 func WithForceTTY(isTTY bool) Option {
@@ -42,6 +51,7 @@ func New(out *os.File, opts ...Option) *Display {
 		out:   out,
 		fd:    fd,
 		isTTY: term.IsTerminal(fd),
+		separator: true,
 	}
 	for _, opt := range opts {
 		opt(d)
@@ -167,6 +177,10 @@ func (d *Display) Flush() {
 func (d *Display) writeLiveLines() {
 	tw := d.termWidthLocked()
 	d.liveCount = len(d.liveLines)
+	if d.separator && d.liveCount > 0 {
+		d.buf.WriteByte('\n')
+		d.liveCount++
+	}
 	for _, line := range d.liveLines {
 		if tw > 0 && VisibleWidth(line) > tw-1 {
 			line = Truncate(line, tw-1)
