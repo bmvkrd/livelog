@@ -73,6 +73,7 @@ d := livelog.New(os.Stdout)
 | Option | Description |
 |--------|-------------|
 | `WithForceTTY(bool)` | Override automatic TTY detection. Useful in tests. |
+| `WithSeparator(bool)` | Insert a blank line between the scrolling log zone and the live zone. Enabled by default. |
 
 #### Methods
 
